@@ -1,15 +1,15 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Konfiguracja strony - 'wide' sprawi, że wykres będzie mógł być szerszy
-st.set_page_config(page_title="PROCES ZKP - MATA TERMO", layout="wide")
+# Ustawienie szerokiego układu strony (Wide)
+st.set_page_config(page_title="ZKP - MATA TERMO", layout="wide")
 
-def render_large_mermaid(code):
-    # Zwiększony height do 800px, aby grafika była potężna
+def render_big_mermaid(code):
+    # Kontener HTML z automatycznym skalowaniem i dużą wysokością
     components.html(
         f"""
-        <div style="display: flex; justify-content: center;">
-            <pre class="mermaid" style="width: 100%;">
+        <div style="background-color: white; padding: 20px; border-radius: 10px;">
+            <pre class="mermaid" style="display: flex; justify-content: center;">
                 {code}
             </pre>
         </div>
@@ -17,67 +17,77 @@ def render_large_mermaid(code):
             import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
             mermaid.initialize({{ 
                 startOnLoad: true, 
-                theme: 'neutral',
-                flowchart: {{ useMaxWidth: false, htmlLabels: true }} 
+                theme: 'forest',
+                flowchart: {{ useMaxWidth: false, htmlLabels: true, curve: 'basis' }} 
             }});
         </script>
         """,
-        height=850,
+        height=1000, # Zwiększona wysokość dla czytelności
     )
 
-st.title("📑 Pełny Schemat Technologiczny ZKP")
-st.subheader("Linia Malex: Laminacja Ekstruzyjna (Bezpośrednia)")
+# --- TREŚĆ STRONY ---
+st.markdown("<h1 style='text-align: center; color: #1E3A8A;'>SCHEMAT ZKP: PRODUKCJA MATY IZOLACYJNEJ</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Linia Malex - Proces laminacji bezpośredniej (Hot-Melt)</p>", unsafe_allow_html=True)
+st.write("---")
 
-# Bardzo rozbudowany schemat
-big_mermaid = """
+# --- WIELKA GRAFIKA ---
+# Uproszczona składnia Mermaid (bez zbędnych tagów HTML wewnątrz, by uniknąć błędów)
+big_mermaid_code = """
 graph TD
-    subgraph S1 [<b>ETAP 0: WEJŚCIE I KONTROLA</b>]
-        A1[Dostawa Granulatu LDPE] --> A2{Kontrola TDS / Czystość}
-        B1[Dostawa Alu Zbrojonego] --> B2{Kontrola Zbrojenia / Powierzchni}
-    end
+    Start([<b>START: Przyjazd surowców</b>]) --> In1[1. Granulat LDPE + Aluminium Zbrojone]
+    In1 --> QC_In{<b>KONTROLA WEJŚCIOWA</b><br/>Certyfikaty i czystość}
+    
+    QC_In -->|OK| Step1[2. EKSTRUDER: Topienie LDPE]
+    
+    Step1 --> Point1{{<b>PUNKT STYKU I</b>}}
+    Point1 --- Roll_Baza[Rolka bazy 3W]
+    Point1 --- Roll_Alu1[Aluminium z szpuli]
+    
+    Point1 --> Step2[3. LAMINACJA: Łączenie w fazie płynnej]
+    Step2 --> QC1{<b>TEST ADHEZJI</b><br/>Czy Alu trzyma?}
+    
+    QC1 -->|OK| Point2{{<b>PUNKT STYKU II</b>}}
+    Point2 --- Roll_Alu2[Druga warstwa Alu / Folii]
+    Point2 --- Product1[Wstęga z etapu 3]
+    
+    Point2 --> Step3[4. FORMOWANIE: Produkt 5-warstwowy]
+    Step3 --> QC2{<b>TEST JAKOŚCI</b><br/>Grubość i Bąbel}
+    
+    QC2 -->|OK| Step4[5. PRZEKRAWACZ: Docinanie brzegów]
+    Step4 --> Step5[6. NAWIJAK: Formowanie rolek]
+    
+    Step5 --> QC3{<b>KONTROLA KOŃCOWA</b><br/>Szerokość i Nawój}
+    QC3 -->|OK| End([<b>MAGAZYN WYROBU GOTOWEGO</b>])
 
-    subgraph S2 [<b>ETAP I: BAZA (Wytwarzanie folii 3W)</b>]
-        A2 --> C1[Wytłaczarka nr 1 - Stopienie LDPE]
-        C1 --> C2[Formowanie bąbla na wale chłodzącym]
-        C2 --> C3[Rolka Bazy 3-warstwowej]
-        C3 --> QC1{<b>TEST 1:</b><br/>Szczelność bąbla}
-    end
-
-    subgraph S3 [<b>ETAP II: PIERWSZA LAMINACJA</b>]
-        C3 --> D1[Punkt Styku: Gorące LDPE z Głowicy]
-        B2 --> D1
-        D1 --> D2[Zespolenie warstwy Alu z folią 3W]
-        D2 --> QC2{<b>TEST 2:</b><br/>Adhezja Alu}
-    end
-
-    subgraph S4 [<b>ETAP III: DRUGA LAMINACJA (Produkt 5W)</b>]
-        D2 --> E1[Punkt Styku: Kolejne gorące LDPE]
-        E1 --> E2[Zespolenie z drugą stroną Alu/Folią]
-        E2 --> QC3{<b>TEST 3:</b><br/>Grubość całkowita maty}
-    end
-
-    subgraph S5 [<b>ETAP IV: WYKOŃCZENIE</b>]
-        E2 --> F1[Przekrawacz: Odcinanie brzegów]
-        F1 --> F2[Nawijak: Formowanie rolki handlowej]
-        F2 --> QC4{<b>TEST 4:</b><br/>Szerokość i Nawój}
-    end
-
-    QC4 --> G1[<b>MAGAZYN WYROBU GOTOWEGO</b>]
-
-    %% Kolorystyka
-    style S1 fill:#f9f9f9,stroke:#333,stroke-dasharray: 5 5
-    style S2 fill:#e3f2fd,stroke:#1565c0
-    style S3 fill:#fff3e0,stroke:#ef6c00
-    style S4 fill:#fff3e0,stroke:#ef6c00
-    style QC1 fill:#ffcdd2,stroke:#c62828
-    style QC2 fill:#ffcdd2,stroke:#c62828
-    style QC3 fill:#ffcdd2,stroke:#c62828
-    style QC4 fill:#ffcdd2,stroke:#c62828
-    style G1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:4px
+    %% Stylizacja
+    style Start fill:#f4f4f4,stroke:#333
+    style End fill:#c8e6c9,stroke:#2e7d32,stroke-width:4px
+    style QC_In fill:#fff9c4,stroke:#fbc02d
+    style QC1 fill:#fff9c4,stroke:#fbc02d
+    style QC2 fill:#fff9c4,stroke:#fbc02d
+    style QC3 fill:#fff9c4,stroke:#fbc02d
+    style Point1 fill:#ffecb3,stroke:#ffa000,stroke-width:2px
+    style Point2 fill:#ffecb3,stroke:#ffa000,stroke-width:2px
 """
 
-render_large_mermaid(big_mermaid)
+render_big_mermaid(big_mermaid_code)
 
+# --- TABELA PARAMETRÓW POD GRAFIKĄ ---
 st.write("---")
-st.markdown("### 📋 Instrukcja Kontroli dla Operatora")
-st.info("Pamiętaj: Laminacja odbywa się przez wykorzystanie ciepła własnego polimeru. Brak wałów dociskowych oznacza, że temperatura głowicy musi być monitorowana co 30 minut.")
+st.header("📋 Kluczowe parametry do monitorowania")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.subheader("🔥 Termika")
+    st.write("- **Głowica:** 205°C - 215°C")
+    st.write("- **Stop LDPE:** Jednolity, bez grudek")
+with col2:
+    st.subheader("⚙️ Mechanika")
+    st.write("- **Prędkość:** Stała (synchroniczna)")
+    st.write("- **Hamulce:** Stały naciąg Alu")
+with col3:
+    st.subheader("📏 Jakość")
+    st.write("- **Adhezja:** Zgrzew nie do rozerwania")
+    st.write("- **Bąbel:** Nieprzegrzany (wysokość)")
+
+st.success("Grafika jest zoptymalizowana pod wydruk A4 w orientacji pionowej.")
