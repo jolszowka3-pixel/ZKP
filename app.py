@@ -1,10 +1,10 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Konfiguracja strony pod wydruk
+# Konfiguracja strony
 st.set_page_config(page_title="ARKUSZ ZKP - LINIA MALEX", layout="centered")
 
-# Funkcja do renderowania schematu blokowego
+# Funkcja do renderowania schematu Mermaid
 def render_mermaid(code):
     components.html(
         f"""
@@ -18,95 +18,81 @@ def render_mermaid(code):
             mermaid.initialize({{ startOnLoad: true, theme: 'neutral' }});
         </script>
         """,
-        height=450,
+        height=400,
     )
 
-# --- NAGŁÓWEK DOKUMENTU ---
-st.markdown("<h1 style='text-align: center;'>KARTA ZAKŁADOWEJ KONTROLI PRODUKCJI (ZKP)</h1>", unsafe_allow_status=True)
+# --- NAGŁÓWEK ---
+st.markdown("<h1 style='text-align: center;'>KARTA ZAKŁADOWEJ KONTROLI PRODUKCJI (ZKP)</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-weight: bold;'>PRODUKCJA MATY TERMOIZOLACYJNEJ (ALU / 3W-LDPE / ALU)</p>", unsafe_allow_html=True)
 st.write("---")
 
-# --- SEKCJA 1: SCHEMAT PROCESU ---
+# --- SEKCJA 1: SCHEMAT ---
 st.header("1. Schemat Procesu Technologicznego (Linia Malex)")
 mermaid_flow = """
 graph TD
-    A[<b>WEJŚCIE:</b> Granulat LDPE + Alu Zbrojone] --> B(<b>ETAP I:</b> Wytłaczanie bazy 3W)
-    B --> C(<b>ETAP II:</b> Laminacja Alu + Warstwa 2)
-    C --> D(<b>ETAP III:</b> Laminacja Alu + Warstwa 3)
-    D --> E(<b>WYKOŃCZENIE:</b> Przekrawacz / Noże)
-    E --> F[<b>WYJŚCIE:</b> Produkt Gotowy / Magazyn]
+    A[<b>WEJŚCIE:</b> Granulat + Alu] --> B(<b>KROK I:</b> Produkcja bazy 3W)
+    B --> C(<b>KROK II:</b> Laminacja Alu + Warstwa 2)
+    C --> D(<b>KROK III:</b> Laminacja Alu + Warstwa 3)
+    D --> E(<b>KONFEKCJA:</b> Przekrawacz)
+    E --> F[<b>WYJŚCIE:</b> Produkt Gotowy]
     
     style A fill:#f4f4f4,stroke:#333
     style F fill:#e1f5fe,stroke:#01579b
 """
 render_mermaid(mermaid_flow)
 
-# --- SEKCJA 2: KONTROLA SUROWCÓW I MASZYNY ---
-st.header("2. Parametry Krytyczne (Kontrola A-Z)")
+# --- SEKCJA 2: KONTROLA I PARAMETRY ---
+st.header("2. Parametry Krytyczne i Kontrola Surowców")
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("📥 Wejście (Surowce)")
     st.markdown("""
-    **Granulat LDPE:**
-    * Weryfikacja certyfikatu (TDS).
-    * Brak zanieczyszczeń wizualnych.
-    
-    **Aluminium Zbrojone:**
-    * Ciągłość siatki zbrojącej.
-    * Brak utlenienia (biały nalot).
-    * Szerokość rolki wejściowej.
+    * **Granulat LDPE:** Weryfikacja TDS, brak zanieczyszczeń.
+    * **Aluminium:** Sprawdzenie zbrojenia, brak utlenienia.
+    * **Tuleje:** Kontrola średnicy pod nawijak.
     """)
 
 with col2:
     st.subheader("⚙️ Maszyna Malex")
     st.markdown("""
-    **Temperatury:**
-    * Głowica (die): **200°C - 210°C**
-    * Wały laminujące: **85°C - 105°C**
-    
-    **Mechanika:**
-    * Prędkość: **12-20 m/min**
-    * Naciąg (Tension): Stały (hamulce)
-    * Docisk wałów: **5 Bar**
+    * **Głowica:** 200°C - 210°C
+    * **Wały laminujące:** 85°C - 105°C
+    * **Prędkość:** 12-20 m/min
+    * **Docisk:** 5 Bar
     """)
 
 st.write("---")
 
-# --- SEKCJA 3: TABELA KONTROLI JAKOŚCI ---
+# --- SEKCJA 3: TABELA JAKOŚCI ---
 st.header("3. Punkty Kontrolne i Tolerancje")
 
 st.markdown("""
-| Parametr | Metoda Badania | Częstotliwość | Tolerancja / Wymaganie |
+| Parametr | Metoda Badania | Częstotliwość | Tolerancja |
 | :--- | :--- | :--- | :--- |
-| **Jakość Bąbla** | Ściskanie (test szczelności) | Raz na 500m | Brak pękania, bąbel pełny |
-| **Adhezja (Klejenie)** | Peel Test (ręczne odrywanie) | Każda zmiana rolki | Rozdarcie folii, nie spoiny |
-| **Grubość Maty** | Mikrometr talerzykowy | Start partii / co 1000m | Zgodnie z deklaracją +/- 5% |
-| **Szerokość (mm)** | Przymiar liniowy | Ciągła (noże) | +/- 2 mm |
-| **Naciąg Nawoju** | Wizualna (brak teleskopu) | Każda rolka | Rolka zwarta, boki równe |
+| **Szczelność Bąbla** | Test ściskania | Raz na 500m | Brak pękania |
+| **Adhezja (Alu)** | Peel Test | Każda zmiana rolki | Rozdarcie folii |
+| **Grubość Maty** | Mikrometr | Start partii | +/- 5% |
+| **Szerokość** | Przymiar | Ciągła | +/- 2 mm |
 """)
 
 # --- SEKCJA 4: PROCEDURA NIEZGODNOŚCI ---
 st.header("4. Postępowanie z Wyrobem Niezgodnym")
-st.error("W przypadku wykrycia wady przekraczającej tolerancję:")
-st.markdown("""
-1.  **Zatrzymaj proces** i skoryguj parametry na panelu Malex.
-2.  **Oznacz wadliwy odcinek** czerwoną etykietą lub markerem.
-3.  **Odizoluj rolkę** – nie może trafić do Magazynu Wyrobów Gotowych.
-4.  **Wpisz zdarzenie** do dobowego raportu produkcji.
-""")
+st.error("W przypadku wykrycia wady: Oznacz odcinek czerwoną etykietą, skoryguj parametry i odizoluj rolkę od reszty partii.")
 
 st.write("---")
 
-# --- STOPKA DO PODPISU ---
-st.header("5. Zatwierdzenie")
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.text_input("Data kontroli:")
-with hide_label_c2 := c2: # hack do wyrównania
-    st.text_input("Podpis Operatora:")
-with c3:
-    st.text_input("Podpis Kontroli Jakości:")
+# --- SEKCJA 5: ZATWIERDZENIE (POPRAWIONA) ---
+st.header("5. Zatwierdzenie Kontroli")
 
-st.markdown("<br><p style='text-align: center; color: gray;'>Dokument generowany automatycznie na potrzeby ZKP - 2026</p>", unsafe_allow_html=True)
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    st.text_input("Data:", key="data_input")
+with c2:
+    st.text_input("Podpis Operatora:", key="op_input")
+with c3:
+    st.text_input("Podpis KJ:", key="kj_input")
+
+st.markdown("<br><p style='text-align: center; color: gray;'>Dokument ZKP - Linia Produkcyjna Malex - 2026</p>", unsafe_allow_html=True)
