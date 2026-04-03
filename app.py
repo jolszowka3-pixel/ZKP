@@ -1,15 +1,15 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Konfiguracja strony
-st.set_page_config(page_title="ARKUSZ ZKP - LINIA MALEX (Laminacja Bezpośrednia)", layout="centered")
+# Ustawienia strony - tryb szeroki dla lepszej prezentacji
+st.set_page_config(page_title="WDROŻENIE ZKP - LINIA MALEX", layout="wide")
 
-# Funkcja do renderowania schematu Mermaid - POWIĘKSZONA
-def render_mermaid(code):
+# Funkcja renderująca powiększony schemat Mermaid
+def render_big_mermaid(code):
     components.html(
         f"""
-        <div style="display: flex; justify-content: center; zoom: 1.4;">
-            <pre class="mermaid">
+        <div style="display: flex; justify-content: center; background-color: white; padding: 20px; border-radius: 10px; zoom: 1.1;">
+            <pre class="mermaid" style="width: 100%;">
                 {code}
             </pre>
         </div>
@@ -18,90 +18,111 @@ def render_mermaid(code):
             mermaid.initialize({{ 
                 startOnLoad: true, 
                 theme: 'neutral',
-                flowchart: {{ useMaxWidth: false }} 
+                flowchart: {{ useMaxWidth: false, htmlLabels: true, curve: 'linear' }} 
             }});
         </script>
         """,
-        height=700, # Zwiększona wysokość okna komponentu
+        height=900,
     )
 
+# --- PANEL BOCZNY (Status Wdrożenia) ---
+st.sidebar.header("📊 Status Wdrożenia ZKP")
+st.sidebar.info("Ten panel pokazuje szefowi, ile pracy pozostało do uzyskania certyfikacji.")
+st.sidebar.checkbox("Instrukcje dla operatorów", value=False)
+st.sidebar.checkbox("Karty kontroli (papierowe/cyfrowe)", value=False)
+st.sidebar.checkbox("Kalibracja czujników temperatury", value=False)
+st.sidebar.checkbox("Archiwum próbek", value=False)
+
 # --- NAGŁÓWEK ---
-st.markdown("<h1 style='text-align: center;'>KARTA ZAKŁADOWEJ KONTROLI PRODUKCJI (ZKP)</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-weight: bold;'>PRODUKCJA MATY: LAMINACJA DO WARSTWY WYPŁYWAJĄCEJ (METODA HOT-MELT)</p>", unsafe_allow_html=True)
+st.title("🛡️ Strategia Wdrożenia Zakładowej Kontroli Produkcji")
+st.subheader("Cel: Zgodność z normami budowlanymi dla mat termoizolacyjnych")
+st.markdown("""
+Ta aplikacja przedstawia kompletny obieg kontroli od surowca po wysyłkę. 
+Wdrożenie tych punktów jest niezbędne do legalnego znakowania produktu znakiem **CE** lub **B**.
+""")
+
 st.write("---")
 
-# --- SEKCJA 1: SCHEMAT ---
-st.header("1. Schemat Procesu: Łączenie w fazie płynnej")
-mermaid_flow = """
+# --- SEKCJA 1: SCHEMAT A-Z ---
+st.header("1. Pełny Cykl Życia Produktu (Schemat A-Z)")
+
+zkp_flow = """
 graph TD
-    A[<b>EKSTRUDER:</b> Wypływ gorącej warstwy LDPE] --> B{<b>PUNKT STYKU</b>}
-    C[<b>PODAJNIK:</b> Folia Alu zbrojone] --> B
-    D[<b>ODWIJAK:</b> Gotowa rolka bąbelkowa] --> B
-    B --> E(Zespolenie termiczne na bębnie formującym)
-    E --> F(Chłodzenie i stabilizacja)
-    F --> G[Przekrawacz i Nawijak]
+    %% Surowce
+    A[<b>MAGAZYN WEJŚCIOWY</b><br/>Granulat + Aluminium] -->|Kontrola certyfikatów| B(<b>PRZYGOTOWANIE PRODUKCJI</b>)
     
-    style B fill:#ffeb3b,stroke:#fbc02d,stroke-width:2px
-    style A fill:#f4f4f4,stroke:#333
+    %% Proces Malex
+    B --> C{{<b>EKSTRUZJA LDPE</b><br/>Topienie granulatu 210°C}}
+    C --> D[<b>LAMINACJA I</b><br/>Łączenie bazy 3W z Alu]
+    D --> E[<b>LAMINACJA II</b><br/>Doklejanie Alu/Foli do wstęgi]
+    
+    %% Punkty Kontrolne
+    E --> QC1{<b>CCP 1: TEST ADHEZJI</b><br/>Czy zgrzew jest trwały?}
+    QC1 -->|OK| QC2{<b>CCP 2: TEST BĄBLA</b><br/>Szczelność i wysokość}
+    
+    %% Wykończenie
+    QC2 -->|OK| F[<b>PRZEKRAWACZ</b><br/>Krawędziowanie i wymiarowanie]
+    F --> G[<b>KONFEKCJA</b><br/>Nawijanie i etykietowanie CE]
+    
+    %% Magazyn
+    G --> H[<b>MAGAZYN WYROBU GOTOWEGO</b>]
+    H -->|Traceability| I[<b>WYSYŁKA</b>]
+
+    %% Style
+    style QC1 fill:#ffcdd2,stroke:#c62828,stroke-width:2px
+    style QC2 fill:#ffcdd2,stroke:#c62828,stroke-width:2px
+    style C fill:#fff9c4,stroke:#fbc02d
+    style H fill:#c8e6c9,stroke:#2e7d32
 """
-render_mermaid(mermaid_flow)
+render_big_mermaid(zkp_flow)
 
-# --- SEKCJA 2: KONTROLA PARAMETRÓW ---
-st.header("2. Kluczowe Parametry Procesu (CCP)")
+st.write("---")
 
-col1, col2 = st.columns(2)
+# --- SEKCJA 2: CO MUSIMY WDROŻYĆ (DLA SZEFA) ---
+st.header("2. Kluczowe obszary do przystosowania")
+
+col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.subheader("🔥 Termika (Ekstruzja)")
+    st.markdown("### 🛠️ Maszyny (Malex)")
     st.markdown("""
-    **Temperatura stopu (Melt Temp):**
-    * Musi być wystarczająca do aktywacji termicznej Alu.
-    * Zakres: **205°C - 215°C** (zależnie od gęstości LDPE).
-    
-    **Chłodzenie bębna:**
-    * Kluczowe dla "zamrożenia" spoiny.
-    * Temp. wody: **15°C - 18°C**.
+    **Co musimy dodać/sprawdzić:**
+    1. **Precyzyjne czujniki temp.:** Musimy mieć pewność, że 210°C na głowicy to faktycznie 210°C.
+    2. **Licznik metrów:** Kalibracja, by klient nie dostał mniej towaru.
+    3. **Noże przekrawacza:** Harmonogram ostrzenia (czysta krawędź aluminium).
     """)
 
 with col2:
-    st.subheader("⚙️ Synchronizacja")
+    st.markdown("### 👥 Pracownicy")
     st.markdown("""
-    **Prędkość liniowa:**
-    * Synchronizacja odwijaka z prędkością wypływu.
-    * Brak naciągu "ciągnącego" – ryzyko zwężenia maty.
-    
-    **Prowadzenie Alu:**
-    * Musi wchodzić idealnie w lustro płynnego LDPE.
+    **Nowe obowiązki:**
+    1. **Raport dobowy:** Co 2h operator wpisuje parametry maszyny do tabeli.
+    2. **Testy niszczące:** Przy każdej rolce operator musi spróbować rozerwać laminat (Peel Test).
+    3. **Oznakowanie:** Odpowiedzialność za naklejenie etykiety z nr partii.
+    """)
+
+with col3:
+    st.markdown("### 📦 Logistyka")
+    st.markdown("""
+    **Zmiany w magazynie:**
+    1. **Kwarantanna:** Wydzielone miejsce na towar z wadą (nie może wyjechać!).
+    2. **Paletyzacja:** Maty nie mogą leżeć na ziemi (korozja alu).
+    3. **Archiwum:** Pudełko na próbki 30x30cm z każdej partii (wymóg normy).
     """)
 
 st.write("---")
 
-# --- SEKCJA 3: TABELA JAKOŚCI ---
-st.header("3. Kontrola Jakości (Standard Budowlany)")
+# --- SEKCJA 3: TABELA KONTROLI (CHECKLISTA) ---
+st.header("3. Standard Kontroli Jakości (Do wdrożenia od zaraz)")
 
-st.info("💡 Ponieważ doklejasz do gorącej warstwy, największym ryzykiem jest deformacja termiczna bąbli.")
+data = {
+    "Krok": ["Przyjęcie LDPE", "Ekstruzja", "Laminacja", "Krawędziowanie", "Etykietowanie"],
+    "Co sprawdzamy?": ["Certyfikat dostawcy (MFR)", "Temperatura stopu (210°C)", "Siła zgrzewu (Adhezja)", "Szerokość (np. 1200mm)", "Znak CE + Nr Partii"],
+    "Tolerancja": ["Zgodna z zamówieniem", "+/- 5°C", "Brak rozwarstwienia", "+/- 2mm", "100% poprawności"]
+}
+st.table(data)
 
-st.markdown("""
-| Parametr | Metoda Badania | Częstotliwość | Cel |
-| :--- | :--- | :--- | :--- |
-| **Siła Zgrzewu** | Próba rozdarcia | Co każdą rolkę | Rozdarcie materiału, nie odklejenie Alu |
-| **Integracja Bąbla** | Pomiar grubości | Co 500m | Brak "klapniętych" bąbli (przegrzanie) |
-| **Ciągłość Alu** | Wizualna | Ciągła | Brak marszczeń i pęcherzy powietrza pod Alu |
-| **Szerokość** | Przymiar | Co rolkę | Zgodność z zamówieniem +/- 2mm |
-""")
+st.warning("💡 **Ważne dla Szefa:** Bez dokumentacji tych kroków, żadne badania w laboratorium zewnętrznym nie dadzą nam prawa do wystawienia Deklaracji Właściwości Użytkowych (DoP).")
 
-# --- SEKCJA 4: PROCEDURA ---
-st.header("4. Postępowanie z Wyrobem Niezgodnym")
-st.warning("⚠️ Jeżeli Alu odchodzi od LDPE 'na sucho' – podnieś temperaturę na głowicy lub zwolnij prędkość linii!")
-
-# --- SEKCJA 5: ZATWIERDZENIE ---
-st.header("5. Zatwierdzenie Partii")
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.text_input("Data:", key="d1")
-with c2:
-    st.text_input("Operator Malex:", key="o1")
-with c3:
-    st.text_input("Podpis KJ:", key="p1")
-
-st.markdown("<br><p style='text-align: center; color: gray;'>System ZKP - Dokumentacja Cyfrowa v1.2</p>", unsafe_allow_html=True)
+# --- STOPKA ---
+st.markdown("<p style='text-align: center; color: #7f8c8d;'>Opracowano na potrzeby wdrożenia normy budowlanej w zakładzie produkcji mat termoizolacyjnych. v1.5</p>", unsafe_allow_html=True)
