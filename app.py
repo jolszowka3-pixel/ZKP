@@ -1,14 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Ustawienia strony - tryb szeroki dla lepszej prezentacji
-st.set_page_config(page_title="WDROŻENIE ZKP - LINIA MALEX", layout="wide")
+# Konfiguracja strony
+st.set_page_config(page_title="ZKP TOTAL: Od Surowca do Magazynu", layout="wide")
 
-# Funkcja renderująca powiększony schemat Mermaid
-def render_big_mermaid(code):
+# Funkcja renderująca schemat
+def render_full_mermaid(code):
     components.html(
         f"""
-        <div style="display: flex; justify-content: center; background-color: white; padding: 20px; border-radius: 10px; zoom: 1.1;">
+        <div style="display: flex; justify-content: center; background-color: #ffffff; padding: 30px; border-radius: 15px; border: 1px solid #e0e0e0;">
             <pre class="mermaid" style="width: 100%;">
                 {code}
             </pre>
@@ -18,111 +18,141 @@ def render_big_mermaid(code):
             mermaid.initialize({{ 
                 startOnLoad: true, 
                 theme: 'neutral',
-                flowchart: {{ useMaxWidth: false, htmlLabels: true, curve: 'linear' }} 
+                flowchart: {{ useMaxWidth: false, htmlLabels: true, curve: 'stepBefore' }} 
             }});
         </script>
         """,
-        height=900,
+        height=1100,
     )
 
-# --- PANEL BOCZNY (Status Wdrożenia) ---
-st.sidebar.header("📊 Status Wdrożenia ZKP")
-st.sidebar.info("Ten panel pokazuje szefowi, ile pracy pozostało do uzyskania certyfikacji.")
-st.sidebar.checkbox("Instrukcje dla operatorów", value=False)
-st.sidebar.checkbox("Karty kontroli (papierowe/cyfrowe)", value=False)
-st.sidebar.checkbox("Kalibracja czujników temperatury", value=False)
-st.sidebar.checkbox("Archiwum próbek", value=False)
+# --- PANEL BOCZNY ---
+st.sidebar.title("🚀 Plan Wdrożenia ZKP")
+st.sidebar.markdown("### Etapy Certyfikacji:")
+st.sidebar.progress(25) # Na razie 25% - bo mamy plan, ale brak wdrożenia
+st.sidebar.write("1. 📝 Dokumentacja (W TOKU)")
+st.sidebar.write("2. 🏗️ Przystosowanie Maszyn")
+st.sidebar.write("3. 🎓 Szkolenie Załogi")
+st.sidebar.write("4. 🔬 Badania Typu (ITT)")
 
 # --- NAGŁÓWEK ---
-st.title("🛡️ Strategia Wdrożenia Zakładowej Kontroli Produkcji")
-st.subheader("Cel: Zgodność z normami budowlanymi dla mat termoizolacyjnych")
-st.markdown("""
-Ta aplikacja przedstawia kompletny obieg kontroli od surowca po wysyłkę. 
-Wdrożenie tych punktów jest niezbędne do legalnego znakowania produktu znakiem **CE** lub **B**.
-""")
+st.title("🛡️ Kompletny Obieg Kontroli Produkcji (A-Z)")
+st.info("Poniższy schemat i wytyczne są fundamentem do uzyskania Certyfikatu Zgodności dla maty termoizolacyjnej.")
 
-st.write("---")
+# --- SEKCJA 1: GRAFICZNY ARCHI-SCHEMAT ---
+st.header("1. Mapa Procesu i Punkty Kontrolne")
 
-# --- SEKCJA 1: SCHEMAT A-Z ---
-st.header("1. Pełny Cykl Życia Produktu (Schemat A-Z)")
-
-zkp_flow = """
+full_zkp_flow = """
 graph TD
-    %% Surowce
-    A[<b>MAGAZYN WEJŚCIOWY</b><br/>Granulat + Aluminium] -->|Kontrola certyfikatów| B(<b>PRZYGOTOWANIE PRODUKCJI</b>)
-    
-    %% Proces Malex
-    B --> C{{<b>EKSTRUZJA LDPE</b><br/>Topienie granulatu 210°C}}
-    C --> D[<b>LAMINACJA I</b><br/>Łączenie bazy 3W z Alu]
-    D --> E[<b>LAMINACJA II</b><br/>Doklejanie Alu/Foli do wstęgi]
-    
-    %% Punkty Kontrolne
-    E --> QC1{<b>CCP 1: TEST ADHEZJI</b><br/>Czy zgrzew jest trwały?}
-    QC1 -->|OK| QC2{<b>CCP 2: TEST BĄBLA</b><br/>Szczelność i wysokość}
-    
-    %% Wykończenie
-    QC2 -->|OK| F[<b>PRZEKRAWACZ</b><br/>Krawędziowanie i wymiarowanie]
-    F --> G[<b>KONFEKCJA</b><br/>Nawijanie i etykietowanie CE]
-    
-    %% Magazyn
-    G --> H[<b>MAGAZYN WYROBU GOTOWEGO</b>]
-    H -->|Traceability| I[<b>WYSYŁKA</b>]
+    %% ETAP 1
+    subgraph S1 [<b>ETAP 1: SUROWCE</b>]
+        A[Dostawa Granulatu i Alu] --> A1{Weryfikacja Dokumentów}
+        A1 -->|Zgodne| A2[Pobranie próbki / Archiwum]
+        A2 --> A3[Magazyn Surowców - Suchy]
+    end
 
-    %% Style
-    style QC1 fill:#ffcdd2,stroke:#c62828,stroke-width:2px
-    style QC2 fill:#ffcdd2,stroke:#c62828,stroke-width:2px
-    style C fill:#fff9c4,stroke:#fbc02d
-    style H fill:#c8e6c9,stroke:#2e7d32
+    %% ETAP 2
+    subgraph S2 [<b>ETAP 2: PROCES MALEX (SERCE)</b>]
+        A3 --> B1[Wytłaczanie warstwy płynnej]
+        B1 --> B2{{<b>LAMINACJA BEZPOŚREDNIA</b><br/>Punkt styku gorącego LDPE}}
+        B2 --> B3[Formowanie 5 warstw]
+        B3 --> QC1{<b>CCP 1: TERMOPLIP</b><br/>Test zgrzewu i bąbla}
+    end
+
+    %% ETAP 3
+    subgraph S3 [<b>ETAP 3: KRAWĘDZIOWANIE</b>]
+        QC1 --> C1[Przekrawacz: Noże boczne]
+        C1 --> C2{<b>CCP 2: GEOMETRIA</b><br/>Szerokość i czystość cięcia}
+        C2 --> C3[System odsysania odpadu/ścinek]
+    end
+
+    %% ETAP 4
+    subgraph S4 [<b>ETAP 4: KONFEKCJA I FINISZ</b>]
+        C3 --> D1[Nawijak: Licznik metrów]
+        D1 --> D2[Pakowanie w folię ochronną]
+        D2 --> D3[<b>ETYKIETA CE:</b> Nr Partii / Data]
+    end
+
+    %% ETAP 5
+    subgraph S5 [<b>ETAP 5: MAGAZYN I LOGISTYKA</b>]
+        D3 --> E1[Paletyzacja: Brak kontaktu z podłożem]
+        E1 --> E2{<b>CCP 3: SKŁADOWANIE</b><br/>Ochrona przed UV i naciskiem}
+        E2 --> E3[Wydanie towaru / Dokumentacja WZ]
+    end
+
+    style QC1 fill:#ffcdd2,stroke:#c62828
+    style QC2 fill:#ffcdd2,stroke:#c62828
+    style E2 fill:#ffcdd2,stroke:#c62828
+    style B2 fill:#fff9c4,stroke:#fbc02d
 """
-render_big_mermaid(zkp_flow)
+render_full_mermaid(full_zkp_flow)
 
 st.write("---")
 
-# --- SEKCJA 2: CO MUSIMY WDROŻYĆ (DLA SZEFA) ---
-st.header("2. Kluczowe obszary do przystosowania")
+# --- SEKCJA 2: SZCZEGÓŁOWY ROZBITY OPIS ---
+st.header("2. Szczegółowe wymagania dla każdego kroku")
 
-col1, col2, col3 = st.columns(3)
+tab1, tab2, tab3, tab4 = st.tabs(["🏗️ Produkcja (Malex)", "✂️ Krawędziowanie", "📦 Pakowanie & CE", "🏬 Magazynowanie"])
 
-with col1:
-    st.markdown("### 🛠️ Maszyny (Malex)")
+with tab1:
+    st.markdown("#### Krytyczne parametry na maszynie:")
+    col_p1, col_p2 = st.columns(2)
+    with col_p1:
+        st.write("**Ekstruzja:**")
+        st.write("- Temperatura głowicy: **210°C ± 5°C** (Klucz do adhezji)")
+        st.write("- Chłodzenie bębna: **16°C - 20°C** (Klucz do formy bąbla)")
+    with col_p2:
+        st.write("**Laminacja:**")
+        st.write("- Test 'na gorąco': Co 30 min sprawdzenie, czy aluminium nie 'pływa'")
+        st.write("- Wysokość bąbla: Sprawdzenie, czy płynne LDPE nie stopiło bazy 3W")
+
+with tab2:
+    st.markdown("#### Precyzja krawędziowania:")
     st.markdown("""
-    **Co musimy dodać/sprawdzić:**
-    1. **Precyzyjne czujniki temp.:** Musimy mieć pewność, że 210°C na głowicy to faktycznie 210°C.
-    2. **Licznik metrów:** Kalibracja, by klient nie dostał mniej towaru.
-    3. **Noże przekrawacza:** Harmonogram ostrzenia (czysta krawędź aluminium).
+    * **Ustawienie noży:** Szerokość deklarowana (np. 1200mm) musi być zachowana z dokładnością **+/- 2mm**.
+    * **Czystość cięcia:** Aluminium nie może być poszarpane (ryzyko korozji krawędziowej i skaleczeń).
+    * **Zarządzanie odpadem:** Ścinki brzegowe muszą być natychmiast usuwane i segregowane do recyklingu (nie mogą zanieczyszczać gotowego produktu).
     """)
 
-with col2:
-    st.markdown("### 👥 Pracownicy")
+with tab3:
+    st.markdown("#### Identyfikowalność (Traceability):")
     st.markdown("""
-    **Nowe obowiązki:**
-    1. **Raport dobowy:** Co 2h operator wpisuje parametry maszyny do tabeli.
-    2. **Testy niszczące:** Przy każdej rolce operator musi spróbować rozerwać laminat (Peel Test).
-    3. **Oznakowanie:** Odpowiedzialność za naklejenie etykiety z nr partii.
+    * **Licznik metrów:** Każda rolka musi mieć potwierdzoną długość (np. 50mb).
+    * **Etykieta CE/B:** Musi zawierać: 
+        1. Nazwę produktu.
+        2. Deklarowany opór cieplny (R).
+        3. **UNIKALNY NUMER PARTII** (Data + Numer Maszyny + Numer Kolejny).
+    * *Bez numeru partii nie ma mowy o uznaniu normy budowlanej!*
     """)
 
-with col3:
-    st.markdown("### 📦 Logistyka")
+with tab4:
+    st.markdown("#### Zasady magazynowania (Często pomijane!):")
+    st.error("Złe magazynowanie niszczy parametry izolacyjne produktu.")
     st.markdown("""
-    **Zmiany w magazynie:**
-    1. **Kwarantanna:** Wydzielone miejsce na towar z wadą (nie może wyjechać!).
-    2. **Paletyzacja:** Maty nie mogą leżeć na ziemi (korozja alu).
-    3. **Archiwum:** Pudełko na próbki 30x30cm z każdej partii (wymóg normy).
+    1.  **Izolacja od podłoża:** Rolki/palety muszą stać na suchych paletach (brak podciągania wilgoci).
+    2.  **Ochrona UV:** LDPE degraduje pod wpływem słońca. Magazyn musi być zadaszony.
+    3.  **Zakaz nadmiernego piętrowania:** Zbyt duży nacisk na dolne warstwy palet powoduje trwałe zgniatanie bąbelków (utrata izolacyjności).
+    4.  **Zasada FIFO:** 'First In, First Out' – najstarsza partia wyjeżdża pierwsza.
     """)
 
 st.write("---")
 
-# --- SEKCJA 3: TABELA KONTROLI (CHECKLISTA) ---
-st.header("3. Standard Kontroli Jakości (Do wdrożenia od zaraz)")
+# --- SEKCJA 3: PODSUMOWANIE DLA ZARZĄDU ---
+st.header("3. Co musimy wdrożyć 'na wczoraj'?")
+st.warning("Poniższa lista to minimalne inwestycje wymagane przez audytora norm budowlanych.")
 
-data = {
-    "Krok": ["Przyjęcie LDPE", "Ekstruzja", "Laminacja", "Krawędziowanie", "Etykietowanie"],
-    "Co sprawdzamy?": ["Certyfikat dostawcy (MFR)", "Temperatura stopu (210°C)", "Siła zgrzewu (Adhezja)", "Szerokość (np. 1200mm)", "Znak CE + Nr Partii"],
-    "Tolerancja": ["Zgodna z zamówieniem", "+/- 5°C", "Brak rozwarstwienia", "+/- 2mm", "100% poprawności"]
-}
-st.table(data)
+checklist_col1, checklist_col2 = st.columns(2)
+with checklist_col1:
+    st.write("✅ **Sprzęt pomiarowy:**")
+    st.write("- Skalibrowany mikrometr talerzykowy.")
+    st.write("- Pirometr (do weryfikacji temp. stopu).")
+    st.write("- Legalizowana miara stalowa (2m+).")
+with checklist_col2:
+    st.write("✅ **Dokumentacja:**")
+    st.write("- Formularz 'Raport Dobowy Operatora'.")
+    st.write("- Rejestr wyrobów niezgodnych.")
+    st.write("- Procedura reklamacyjna.")
 
-st.warning("💡 **Ważne dla Szefa:** Bez dokumentacji tych kroków, żadne badania w laboratorium zewnętrznym nie dadzą nam prawa do wystawienia Deklaracji Właściwości Użytkowych (DoP).")
+if st.button("Wygeneruj raport końcowy do druku"):
+    st.success("Raport ZKP przygotowany. Użyj Ctrl+P, aby zapisać jako PDF.")
 
-# --- STOPKA ---
-st.markdown("<p style='text-align: center; color: #7f8c8d;'>Opracowano na potrzeby wdrożenia normy budowlanej w zakładzie produkcji mat termoizolacyjnych. v1.5</p>", unsafe_allow_html=True)
+st.markdown("<br><p style='text-align: center; color: gray;'>System Zarządzania Jakością ZKP | Wersja 2.0 - Pełna Specyfikacja</p>", unsafe_allow_html=True)
